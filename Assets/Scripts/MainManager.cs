@@ -9,23 +9,32 @@ public class MainManager : MonoBehaviour
     public Brick BrickPrefab;
     public int LineCount = 6;
     public Rigidbody Ball;
+    
 
     public Text ScoreText;
+    public Text bestScore;
     public GameObject GameOverText;
-    
+
+    public static MainManager instance;
+
     private bool m_Started = false;
-    private int m_Points;
-    
+    public int m_Points;
+    private int highScore;
+
     private bool m_GameOver = false;
 
-    
+    private void Awake()
+    {
+        instance = this;
+    }
+
     // Start is called before the first frame update
     void Start()
     {
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
-        
-        int[] pointCountArray = new [] {1,1,2,2,5,5};
+
+        int[] pointCountArray = new[] { 1, 1, 2, 2, 5, 5 };
         for (int i = 0; i < LineCount; ++i)
         {
             for (int x = 0; x < perLine; ++x)
@@ -42,6 +51,7 @@ public class MainManager : MonoBehaviour
     {
         if (!m_Started)
         {
+            bestScore.text = $"Best Score : {PlayerDataManager.instance.highScore} {PlayerDataManager.instance.bestPlayer}";
             if (Input.GetKeyDown(KeyCode.Space))
             {
                 m_Started = true;
@@ -51,10 +61,15 @@ public class MainManager : MonoBehaviour
 
                 Ball.transform.SetParent(null);
                 Ball.AddForce(forceDir * 2.0f, ForceMode.VelocityChange);
+
+                Debug.Log(PlayerDataManager.instance.playerName);
+                Debug.Log(PlayerDataManager.instance.highScore);
             }
+            
         }
         else if (m_GameOver)
         {
+
             if (Input.GetKeyDown(KeyCode.Space))
             {
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
@@ -66,6 +81,14 @@ public class MainManager : MonoBehaviour
     {
         m_Points += point;
         ScoreText.text = $"Score : {m_Points}";
+        if (m_Points > PlayerDataManager.instance.highScore)
+        {
+            PlayerDataManager.instance.bestPlayer = PlayerDataManager.instance.playerName;
+            PlayerDataManager.instance.highScore = m_Points;
+            PlayerDataManager.instance.SetBestPlayer();
+            PlayerDataManager.instance.SaveName();
+            Debug.Log(PlayerDataManager.instance.bestPlayer);
+        }
     }
 
     public void GameOver()
@@ -73,4 +96,5 @@ public class MainManager : MonoBehaviour
         m_GameOver = true;
         GameOverText.SetActive(true);
     }
+
 }
